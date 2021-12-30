@@ -66,11 +66,11 @@ func generatePixels(width, height int) []byte {
 			mPixel := mandelbrotPixel(pos,
 				float32(width),
 				float32(height),
-				30)
+				64)
 			jPixel := juliaPixel(pos,
 				float32(width),
 				float32(height),
-				30)
+				64)
 
 			pixelColor := rl.Black
 			if mPixel == rl.Black {
@@ -112,6 +112,20 @@ func cameraUpdate(camera *rl.Camera2D, cameraTarget rl.Vector2, windowWidth int3
 		cameraTarget = rl.GetScreenToWorld2D(rl.Vector2Add(camera.Offset, delta), *camera)
 	}
 
+	// Camera zoom controls
+	camera.Zoom += float32(rl.GetMouseWheelMove()) * 0.05
+	if camera.Zoom > 6.0 {
+		camera.Zoom = 6.0
+	} else if camera.Zoom < 0.1 {
+		camera.Zoom = 0.1
+	}
+
+	// Camera reset (zoom and rotation)
+	if rl.IsKeyPressed(rl.KeyR) {
+		camera.Zoom = 0.5
+		cameraTarget = rl.NewVector2(float32(windowWidth)/2.0, float32(windowHeight)/2.0)
+	}
+
 	return cameraTarget
 }
 
@@ -135,14 +149,14 @@ func main() {
 	camera.Target = cameraTarget
 	camera.Offset = rl.NewVector2(cameraTarget.X, cameraTarget.Y)
 	camera.Rotation = 0.0
-	camera.Zoom = 1.0
+	camera.Zoom = 0.5
 
 	mousePos := rl.GetMousePosition()
 
 	// generate patterns
 
-	const drawAreaWidth = 1000
-	const drawAreaHeight = 1000
+	const drawAreaWidth = 2000
+	const drawAreaHeight = 2000
 
 	pixels := generatePixels(drawAreaWidth, drawAreaHeight)
 	image := rl.NewImage(pixels, drawAreaWidth, drawAreaHeight, 1, rl.UncompressedR8g8b8a8)
